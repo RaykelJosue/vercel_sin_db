@@ -1,4 +1,4 @@
-# Super CRUD
+# Super CRUD - Vercel sin DB
 
 Este proyecto final fue realizado por mi persona para obtener el certificado del curso de Social Oplesk de Full Stack Developer, Nivel Avanzado.
 

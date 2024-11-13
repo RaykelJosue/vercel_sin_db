@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Modal from './Modal';
 import AddUser from './AddUser';
-import { obtenerUsuarios, eliminarUsuario } from '../services/userService';
+import { obtenerUsuarios, eliminarUsuario, obtenerTotalUsuarios } from '../services/userService';
 import Notification from './Notification';
 
 const UserList = () => {
     const [usuarios, setUsuarios] = useState([]);
+    const [usuariosFiltrados, setUsuariosFiltrados] = useState([]);
     const [error, setError] = useState(null);
     const [usuarioEditado, setUsuarioEditado] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
@@ -14,15 +15,47 @@ const UserList = () => {
     const [isAddingUser, setIsAddingUser] = useState(false);
     const [notification, setNotification] = useState(null);
     const [expandedNames, setExpandedNames] = useState({});
+    const [filtro, setFiltro] = useState("nombre");
+    const [busqueda, setBusqueda] = useState("");
+    const [totalUsuarios, setTotalUsuarios] = useState(0);
+
+    const aplicarFiltro = useCallback(() => {
+        if (!busqueda) {
+            setUsuariosFiltrados(usuarios);
+            return;
+        }
+
+        const usuariosFiltrados = usuarios.filter(usuario => {
+            const valor = String(usuario[filtro]).toLowerCase();
+            return valor.includes(busqueda.toLowerCase());
+        });
+
+        setUsuariosFiltrados(usuariosFiltrados);
+    }, [busqueda, filtro, usuarios]);
 
     useEffect(() => {
         fetchUsuarios();
+        fetchTotalUsuarios();
     }, []);
+
+    useEffect(() => {
+        aplicarFiltro();
+    }, [aplicarFiltro]);
 
     const fetchUsuarios = async () => {
         try {
             const data = await obtenerUsuarios();
             setUsuarios(data);
+            setUsuariosFiltrados(data);
+        } catch (err) {
+            setError(err);
+        }
+    };
+
+    const fetchTotalUsuarios = async () => {
+        try {
+            const total = await obtenerTotalUsuarios();
+            setTotalUsuarios(total);
         } catch (err) {
             setError(err);
         }
@@ -33,6 +66,7 @@ const UserList = () => {
             try {
                 await eliminarUsuario(usuarioAEliminar.id);
                 await fetchUsuarios();
+                await fetchTotalUsuarios();
                 setUsuarioAEliminar(null);
                 setConfirmDeleteModalOpen(false);
                 showNotification('Usuario eliminado de manera exitosa', 'error');
@@ -72,12 +106,14 @@ const UserList = () => {
 
     const handleUserAdded = async () => {
         await fetchUsuarios();
+        await fetchTotalUsuarios();
         handleCloseModal();
         showNotification('Usuario agregado de manera exitosa', 'success');
     };
 
     const handleUserEdited = async () => {
         await fetchUsuarios();
+        await fetchTotalUsuarios();
         handleCloseModal();
         showNotification('Usuario modificado de manera exitosa', 'info');
     };
@@ -116,6 +152,14 @@ const UserList = () => {
             );
         }
         return name;
+    };
+
+    const handleFiltroChange = (e) => {
+        setFiltro(e.target.value);
+    };
+
+    const handleBusquedaChange = (e) => {
+        setBusqueda(e.target.value);
     };
 
     if (error) return <div>Error: {error.message}</div>;
@@ -161,6 +205,26 @@ const UserList = () => {
                         Agregar Usuario
                     </button>
                 </div>
+
+                <div className="search-filter-container">
+                    <input
+                        type="text"
+                        value={busqueda}
+                        onChange={handleBusquedaChange}
+                        placeholder={`Buscar por ${filtro}`}
+                        className="search-input"
+                    />
+                    <select 
+                        value={filtro} 
+                        onChange={handleFiltroChange}
+                        className="filter-select"
+                    >
+                        <option value="nombre">Nombre</option>
+                        <option value="correo">Correo</option>
+                        <option value="edad">Edad</option>
+                    </select>
+                </div>
+
                 <div className="table-responsive">
                     <table className="user-table">
                         <thead>
@@ -172,7 +236,7 @@ const UserList = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {usuarios.map((usuario) => (
+                            {usuariosFiltrados.map((usuario) => (
                                 <tr key={usuario.id}>
                                     <td>{truncateName(usuario.nombre, usuario.id)}</td>
                                     <td>{usuario.correo}</td>
@@ -191,6 +255,8 @@ const UserList = () => {
                         </tbody>
                     </table>
                 </div>
+
+                <p className="total-users">Total de usuarios: {totalUsuarios}</p>
             </div>
         </div>
     );

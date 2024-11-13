@@ -114,7 +114,6 @@ body {
   color: #fff;
 }
 
-
 /* Lista de usuarios */
 .user-list-container {
   background-color: #fff;
@@ -404,4 +403,41 @@ body {
 
 .view-more-button:hover {
   text-decoration: underline;
+}
+
+/* Estilos para la búsqueda y filtro */
+.search-filter-container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.search-input {
+  flex-grow: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.filter-select {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: white;
+}
+
+.dark .search-input,
+.dark .filter-select {
+  background-color: #555;
+  color: #fff;
+  border-color: #666;
+}
+
+/* Estilo para el total de usuarios */
+.total-users {
+  margin-top: 1rem;
+  font-weight: bold;
 }
